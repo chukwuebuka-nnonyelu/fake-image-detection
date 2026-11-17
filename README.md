@@ -15,6 +15,10 @@ Test set: 620 images (322 real, 298 fake), never seen during training or tuning.
 | Module 3: rule-based parser | EXIF metadata | 39.7% | 0.809 |
 | **Fusion (logistic regression)** | All three scores | **94.4%** | **0.983** (5-fold CV) |
 
+> **Read this with the dataset-bias check below.** Part of these headline scores comes from differences in image *source*, not manipulation. On real and fake images from the same source, the fused model scores **0.923 AUC**.
+
+**Why EXIF accuracy is low but AUC is reasonable:** the decision threshold (0.4) sits below the score given to images with no EXIF data (0.5). Most genuine video frames have no EXIF, so nearly all of them were flagged as fake at that threshold, even though the scores still rank images reasonably well (AUC 0.809). Calibrating this threshold is listed under next steps.
+
 **Ablation study:** removing the EXIF module caused the largest drop in fusion AUC (−0.029), more than removing either CNN, despite EXIF having the weakest standalone score.
 
 ![Ablation study](images/ablation.png)
@@ -38,7 +42,9 @@ A model could therefore score well by telling video frames apart from photos, wi
 | ResNet-50 (ELA) | 0.948 | 0.790 |
 | EfficientNet-B0 (DFT) | 0.939 | 0.736 |
 | EXIF parser | 0.809 | 0.816 |
-| **Fusion** (5-fold CV) | **0.982** | **0.923** |
+| **Fusion** (5-fold CV)* | **0.982** | **0.923** |
+
+*For this check, fusion AUC is computed from pooled out-of-fold predictions (0.982), which differs slightly from the mean of per-fold AUCs reported above (0.983).
 
 **What it shows.**
 - **Both CNNs drop sharply on same-source data**, so part of their headline performance came from source differences rather than manipulation artefacts.
@@ -85,7 +91,7 @@ The notebooks were built for Google Colab with data stored in Google Drive. Samp
 
 - Include Celeb-DF fake frames so both classes contain both sources, and balance the split by source.
 - Evaluate across datasets (train on one, test on another) to measure generalisation.
-- Recalibrate the EXIF rules, which currently treat missing metadata as suspicious even though most genuine video frames have none.
+- Recalibrate the EXIF rules and decision threshold. They currently treat missing metadata as suspicious, even though most genuine video frames have none.
 - Train the fusion layer on validation-set predictions and keep the test set purely for final scoring.
 
 ## Tools
