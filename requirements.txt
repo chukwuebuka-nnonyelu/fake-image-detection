@@ -1,0 +1,13 @@
+torch
+torchvision
+timm
+grad-cam
+numpy
+pandas
+scikit-learn
+pillow
+opencv-python-headless
+exifread
+matplotlib
+seaborn
+tqdm
